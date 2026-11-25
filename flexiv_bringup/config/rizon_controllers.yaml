@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 1000  # Hz
+    update_rate: 500  # Hz
 
     rizon_arm_controller:
       type: joint_trajectory_controller/JointTrajectoryController
@@ -16,6 +16,9 @@ controller_manager:
 
     cartesian_motion_force_controller:
       type: cartesian_motion_force_controller/CartesianMotionForceController
+    
+    cartesian_compliance_controller:
+      type: cartesian_compliance_controller/CartesianComplianceController
 
 rizon_arm_controller:
   ros__parameters:
@@ -51,3 +54,60 @@ cartesian_motion_force_controller:
   ros__parameters:
     prefixes:
       - $(var prefix)
+
+cartesian_compliance_controller:
+  ros__parameters:
+    ik_solver: "forward_dynamics"
+    end_effector_link: $(var prefix)flange
+    robot_base_link: $(var prefix)base_link
+    ft_sensor_ref_link: $(var prefix)flange
+    ft_sensor_topic_name: "/Rizon4_063116/ft_sensor_wrench"
+    compliance_ref_link: $(var prefix)flange
+    force_enable: false
+    gravity_compensation: false
+    force_state_pub: true
+    emergency_stop_threshold: 200.0
+    joints:
+      - $(var prefix)joint1
+      - $(var prefix)joint2
+      - $(var prefix)joint3
+      - $(var prefix)joint4
+      - $(var prefix)joint5
+      - $(var prefix)joint6
+      - $(var prefix)joint7
+
+    # Choose: position or velocity.
+    command_interfaces:
+      - position
+        #- velocity
+
+    stiffness:  # w.r.t. compliance_ref_link
+        trans_x: 100.0
+        trans_y: 100.0
+        trans_z: 100.0
+        rot_x: 10.0
+        rot_y: 10.0
+        rot_z: 10.0
+    
+    damping:
+        trans_x: 1.0
+        trans_y: 1.0
+        trans_z: 1.0
+        rot_x: 0.0
+        rot_y: 0.0
+        rot_z: 0.0
+
+    solver:
+        forward_dynamics:
+          link_mass: 10.0
+        error_scale: 0.2
+        iterations: 2
+        publish_state_feedback: true
+
+    pd_gains:
+        trans_x: {p: 0.3, d: 0.005}
+        trans_y: {p: 0.3, d: 0.005}
+        trans_z: {p: 0.3, d: 0.005}
+        rot_x: {p: 0.1, d: 0.0001}
+        rot_y: {p: 0.1, d: 0.0001}
+        rot_z: {p: 0.1, d: 0.0001}

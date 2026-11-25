@@ -83,7 +83,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "withhold_on_timeliness_failure",
-            default_value="true",
+            default_value="false",
             description="With rdk_realtime_mode, withhold motion until the controller is restarted once real-time commands arrive late too often. false only warns and keeps streaming, as the RDK does. Options: true, false",
             choices=["true", "false"],
         )
@@ -116,7 +116,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             load_mounted_ft_sensor_param_name,
-            default_value="false",
+            default_value="true",
             description="Flag to load the mounted force torque sensor. Only available for Rizon4, Rizon4R, Rizon10 and Rizon10R.",
         )
     )
@@ -141,7 +141,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             robot_controller_param_name,
-            default_value="rizon_arm_controller",
+            default_value="cartesian_compliance_controller",
             description="Robot controller to start. Available: rizon_arm_controller, \
             cartesian_motion_force_controller",
         )

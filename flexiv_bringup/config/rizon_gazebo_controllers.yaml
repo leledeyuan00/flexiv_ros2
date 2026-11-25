@@ -1,0 +1,46 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 500
+    use_sim_time: true
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+    cartesian_compliance_controller:
+      type: cartesian_compliance_controller/CartesianComplianceController
+
+cartesian_compliance_controller:
+  ros__parameters:
+    ik_solver: "forward_dynamics"
+    # gz_ros2_control reads this file directly; $(var prefix) is not expanded.
+    # These names match robot_sn:=Rizon4-063116 in rizon_gazebo.launch.py.
+    end_effector_link: Rizon4-063116_flange
+    robot_base_link: Rizon4-063116_base_link
+    ft_sensor_ref_link: Rizon4-063116_flange
+    ft_sensor_topic_name: "/Rizon4_063116/ft_sensor_wrench"
+    compliance_ref_link: Rizon4-063116_flange
+    force_enable: false
+    gravity_compensation: false
+    force_state_pub: true
+    emergency_stop_threshold: 200.0
+    joints:
+      - Rizon4-063116_joint1
+      - Rizon4-063116_joint2
+      - Rizon4-063116_joint3
+      - Rizon4-063116_joint4
+      - Rizon4-063116_joint5
+      - Rizon4-063116_joint6
+      - Rizon4-063116_joint7
+    command_interfaces: [position]
+    stiffness: {trans_x: 100.0, trans_y: 100.0, trans_z: 100.0, rot_x: 10.0, rot_y: 10.0, rot_z: 10.0}
+    damping: {trans_x: 1.0, trans_y: 1.0, trans_z: 1.0, rot_x: 0.0, rot_y: 0.0, rot_z: 0.0}
+    solver:
+      forward_dynamics: {link_mass: 10.0}
+      error_scale: 0.2
+      iterations: 2
+      publish_state_feedback: true
+    pd_gains:
+      trans_x: {p: 0.3, d: 0.005}
+      trans_y: {p: 0.3, d: 0.005}
+      trans_z: {p: 0.3, d: 0.005}
+      rot_x: {p: 0.1, d: 0.0001}
+      rot_y: {p: 0.1, d: 0.0001}
+      rot_z: {p: 0.1, d: 0.0001}

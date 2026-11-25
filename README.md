@@ -57,11 +57,15 @@ This branch targets ROS 2 Jazzy (Ubuntu 24.04); for ROS 2 Humble use the [humble
    rosdep install --from-paths src --ignore-src --rosdistro jazzy -r -y
    ```
 
-5. Choose a directory for installing `flexiv_rdk` library and all its dependencies. For example, a new folder named `flexiv_install` under the home directory: `~/flexiv_install`. Compile and install to the installation directory:
+5. Choose a directory for installing `flexiv_rdk` and the dependencies that ROS 2 does not
+   provide. For example, use a new folder named `flexiv_install` under the home directory. Do not
+   reuse an installation prefix that contains another RDK version or its Fast DDS, Fast CDR,
+   spdlog, or tinyxml2 libraries.
 
    ```bash
    cd ~/flexiv_ros2_ws/src/flexiv_rdk/thirdparty
-   bash build_and_install_dependencies.sh ~/flexiv_install
+   source /opt/ros/jazzy/setup.bash
+   bash build_and_install_dependencies_not_in_ros2.sh ~/flexiv_install
    ```
 
 6. Configure and install `flexiv_rdk`:
@@ -69,7 +73,11 @@ This branch targets ROS 2 Jazzy (Ubuntu 24.04); for ROS 2 Humble use the [humble
    ```bash
    cd ~/flexiv_ros2_ws/src/flexiv_rdk
    rm -rf build && mkdir build && cd build
-   cmake .. -DCMAKE_INSTALL_PREFIX=~/flexiv_install
+   source /opt/ros/jazzy/setup.bash
+   cmake .. \
+     -DCMAKE_INSTALL_PREFIX=~/flexiv_install \
+     -DCMAKE_PREFIX_PATH=~/flexiv_install \
+     -DRDK_SUPPORT_ROS2_JAZZY=ON
    cmake --build . --target install --config Release
    ```
 

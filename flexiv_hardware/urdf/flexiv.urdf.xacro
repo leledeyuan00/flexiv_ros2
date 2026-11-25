@@ -26,6 +26,8 @@
   <xacro:arg name="use_fake_hardware" default="false" />
   <xacro:arg name="fake_sensor_commands" default="false" />
   <xacro:arg name="initial_positions_file" default="" />
+  <xacro:arg name="sim_gazebo" default="false" />
+  <xacro:arg name="gazebo_controllers_file" default="" />
 
   <!-- Robot model, including the arg declarations this file relies on
        (robot_sn, robot_sn_left/right, arm_type*, arm_prefix, external_axis_prefix). -->
@@ -36,6 +38,7 @@
     <xacro:include filename="$(find flexiv_hardware)/ros2_control/flexiv.ros2_control.xacro" />
     <xacro:include filename="$(find flexiv_hardware)/ros2_control/rizon_dual.ros2_control.xacro" />
     <xacro:include filename="$(find flexiv_hardware)/ros2_control/cartesian.ros2_control.xacro" />
+    <xacro:include filename="$(find flexiv_hardware)/ros2_control/gazebo.ros2_control.xacro" />
 
     <xacro:property name="cfg" value="$(find flexiv_description)/config" />
     <xacro:property name="rtype" value="$(arg robot_type)" />
@@ -84,7 +87,10 @@
       <xacro:property name="init_file"
         value="${'$(arg initial_positions_file)' if '$(arg initial_positions_file)' != '' else cfg + '/' + rtype + '/initial_positions.yaml'}" />
 
-      <xacro:flexiv_ros2_control
+      <xacro:if value="$(arg sim_gazebo)"><xacro:gazebo_ros2_control
+        prefix="${prefix}" initial_positions_file="${init_file}"
+        controllers_file="$(arg gazebo_controllers_file)" /></xacro:if>
+      <xacro:unless value="$(arg sim_gazebo)"><xacro:flexiv_ros2_control
         prefix="${prefix}"
         robot_sn="$(arg robot_sn)"
         rdk_control_mode="$(arg rdk_control_mode)"
@@ -94,7 +100,7 @@
         use_fake_hardware="$(arg use_fake_hardware)"
         fake_sensor_commands="$(arg fake_sensor_commands)"
         initial_positions_file="${init_file}"
-        num_gpio_ports="${num_gpio_ports}" />
+        num_gpio_ports="${num_gpio_ports}" /></xacro:unless>
     </xacro:if>
 
     <!-- ============ SINGLE ARM ON AN EXTERNAL AXIS (AICO1) ============ -->

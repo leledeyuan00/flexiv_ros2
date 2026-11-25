@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="gazebo_ros2_control" params="prefix initial_positions_file controllers_file">
+    <xacro:property name="initial_positions" value="${xacro.load_yaml(initial_positions_file)['initial_positions']}" />
+    <ros2_control name="GazeboSystem" type="system">
+      <hardware><plugin>gz_ros2_control/GazeboSimSystem</plugin></hardware>
+      <xacro:macro name="gazebo_joint" params="name">
+        <joint name="${prefix}${name}">
+          <command_interface name="position" /><command_interface name="velocity" /><command_interface name="effort" />
+          <state_interface name="position"><param name="initial_value">${initial_positions[name]}</param></state_interface>
+          <state_interface name="velocity" /><state_interface name="effort" />
+        </joint>
+      </xacro:macro>
+      <xacro:gazebo_joint name="joint1" /><xacro:gazebo_joint name="joint2" />
+      <xacro:gazebo_joint name="joint3" /><xacro:gazebo_joint name="joint4" />
+      <xacro:gazebo_joint name="joint5" /><xacro:gazebo_joint name="joint6" />
+      <xacro:gazebo_joint name="joint7" />
+    </ros2_control>
+    <gazebo>
+      <plugin filename="libgz_ros2_control-system.so" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+        <parameters>${controllers_file}</parameters>
+      </plugin>
+    </gazebo>
+  </xacro:macro>
+</robot>
