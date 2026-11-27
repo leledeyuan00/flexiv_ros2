@@ -16,6 +16,8 @@
 
   <!-- Other args come from the description entry point included below. -->
   <xacro:arg name="ros2_control" default="true" />
+  <!-- For Rizon-Dual, select one arm's hardware while retaining the full model. -->
+  <xacro:arg name="rizon_dual_control_arm" default="" />
   <xacro:arg name="rdk_control_mode" default="joint_position" />
   <!-- Real-time RDK modes for the joint and Cartesian interfaces, streamed at the control rate -->
   <xacro:arg name="rdk_realtime_mode" default="false" />
@@ -130,21 +132,44 @@
       <xacro:compute_arm_prefix arm_prefix="right" robot_sn="$(arg robot_sn_right)" />
       <xacro:property name="pair_right" value="${computed_arm_prefix}" lazy_eval="false" />
 
-      <xacro:rizon_dual_ros2_control
-        prefix_left="${pair_left}"
-        prefix_right="${pair_right}"
-        robot_sn_left="$(arg robot_sn_left)"
-        robot_sn_right="$(arg robot_sn_right)"
-        rdk_control_mode="$(arg rdk_control_mode)"
-        rdk_realtime_mode="$(arg rdk_realtime_mode)"
-        withhold_on_timeliness_failure="$(arg withhold_on_timeliness_failure)"
-        max_joint_acceleration="$(arg max_joint_acceleration)"
-        use_fake_hardware="$(arg use_fake_hardware)"
-        fake_sensor_commands="$(arg fake_sensor_commands)"
-        initial_positions_file_left="${cfg}/${arm_left}/initial_positions.yaml"
-        initial_positions_file_right="${cfg}/${arm_right}/initial_positions.yaml"
-        external_axis_type="${external_axis_type}"
-        external_axis_prefix="$(arg external_axis_prefix)" />
+      <xacro:property name="control_arm" value="$(arg rizon_dual_control_arm)" />
+      <xacro:if value="${control_arm == ''}">
+        <xacro:rizon_dual_ros2_control
+          prefix_left="${pair_left}"
+          prefix_right="${pair_right}"
+          robot_sn_left="$(arg robot_sn_left)"
+          robot_sn_right="$(arg robot_sn_right)"
+          rdk_control_mode="$(arg rdk_control_mode)"
+          rdk_realtime_mode="$(arg rdk_realtime_mode)"
+          withhold_on_timeliness_failure="$(arg withhold_on_timeliness_failure)"
+          max_joint_acceleration="$(arg max_joint_acceleration)"
+          use_fake_hardware="$(arg use_fake_hardware)"
+          fake_sensor_commands="$(arg fake_sensor_commands)"
+          initial_positions_file_left="${cfg}/${arm_left}/initial_positions.yaml"
+          initial_positions_file_right="${cfg}/${arm_right}/initial_positions.yaml"
+          external_axis_type="${external_axis_type}"
+          external_axis_prefix="$(arg external_axis_prefix)" />
+      </xacro:if>
+
+      <xacro:unless value="${control_arm == ''}">
+        <xacro:unless value="${is_rizon_dual and control_arm in ['left', 'right']}">
+          ${xacro.error('rizon_dual_control_arm must be left or right on Rizon-Dual')}
+        </xacro:unless>
+        <xacro:property name="select_left" value="${control_arm == 'left'}" />
+        <xacro:property name="arm_prefix" value="${pair_left if select_left else pair_right}" />
+        <xacro:flexiv_ros2_control
+          prefix="${arm_prefix}"
+          robot_sn="${'$(arg robot_sn_left)' if select_left else '$(arg robot_sn_right)'}"
+          robot_states_name="${arm_prefix[:-1]}"
+          rdk_control_mode="$(arg rdk_control_mode)"
+          rdk_realtime_mode="$(arg rdk_realtime_mode)"
+          withhold_on_timeliness_failure="$(arg withhold_on_timeliness_failure)"
+          max_joint_acceleration="$(arg max_joint_acceleration)"
+          use_fake_hardware="$(arg use_fake_hardware)"
+          fake_sensor_commands="$(arg fake_sensor_commands)"
+          initial_positions_file="${cfg}/${arm_left if select_left else arm_right}/initial_positions.yaml"
+          num_gpio_ports="${num_gpio_ports}" />
+      </xacro:unless>
     </xacro:if>
   </xacro:if>
 

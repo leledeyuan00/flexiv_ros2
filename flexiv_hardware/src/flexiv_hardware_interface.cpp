@@ -278,9 +278,19 @@ hardware_interface::CallbackReturn FlexivHardwareInterface::on_configure(
     const rclcpp_lifecycle::State& /*previous_state*/)
 {
     const std::string robot_sn = info_.hardware_parameters.at("robot_sn");
+    // const std::vector<std::string> whitelist
+    //     = hardware_interface::parse_string_array(
+    //         info_.hardware_parameters.at("network_interface_whitelist"));
+    // testing whitelist
+    const std::vector<std::string> whitelist = {"192.168.2.10", "192.168.2.11"};
 
     try {
         RCLCPP_INFO(getLogger(), "Connecting to robot %s ...", robot_sn.c_str());
+        RCLCPP_INFO(getLogger(), "Network interface whitelist: %s",
+            std::string("[ " + std::accumulate(std::next(whitelist.begin()), whitelist.end(),
+                whitelist.front(), [](std::string a, std::string b) { return a + ", " + b; })
+                + " ]")
+                .c_str());
         robot_ = std::make_unique<flexiv::rdk::Robot>(robot_sn);
     } catch (const std::exception& e) {
         RCLCPP_FATAL(getLogger(), "Could not connect to robot");
@@ -556,9 +566,12 @@ FlexivHardwareInterface::on_export_state_interfaces()
             info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_states_joint_efforts_[i]));
     }
 
-    std::string robot_sn = info_.hardware_parameters.at("robot_sn");
-    state_interfaces.push_back(
-        interfaces_.BindState(robot_sn, "flexiv_robot_states", &hw_flexiv_robot_states_address_));
+    const auto states_name = info_.hardware_parameters.find("robot_states_name");
+    const auto& states_resource = states_name == info_.hardware_parameters.end()
+        ? info_.hardware_parameters.at("robot_sn")
+        : states_name->second;
+    state_interfaces.push_back(interfaces_.BindState(
+        states_resource, "flexiv_robot_states", &hw_flexiv_robot_states_address_));
 
     const std::string prefix = info_.hardware_parameters.at("prefix");
     for (std::size_t i = 0; i < flexiv::rdk::kIOPorts; i++) {

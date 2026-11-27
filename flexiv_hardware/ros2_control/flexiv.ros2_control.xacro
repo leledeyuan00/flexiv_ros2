@@ -8,6 +8,7 @@
     params="
     prefix
     robot_sn
+    robot_states_name:=''
     rdk_control_mode:='joint_position'
     rdk_realtime_mode:=false
     withhold_on_timeliness_failure:=true
@@ -22,12 +23,6 @@
 
     <xacro:property name="initial_positions" value="${xacro.load_yaml(initial_positions_file)['initial_positions']}"/>
 
-    <xacro:include filename="$(find flexiv_description)/urdf/common/flexiv_common.xacro" />
-    <!-- GPIO is named from robot_sn alone, as gpio_controller expects. The hardware interface
-         names it from its prefix parameter, which is the same while arm_prefix is empty. -->
-    <xacro:compute_arm_prefix robot_sn="${robot_sn}" />
-    <xacro:property name="sn_prefix" value="${computed_arm_prefix}" lazy_eval="false" />
-
     <ros2_control name="FlexivHardwareInterface" type="system">
       <hardware>
         <xacro:if value="${use_fake_hardware}">
@@ -39,6 +34,9 @@
           <plugin>flexiv_hardware/FlexivHardwareInterface</plugin>
           <param name="robot_sn">${robot_sn}</param>
           <param name="prefix">${prefix}</param>
+          <xacro:if value="${robot_states_name != ''}">
+            <param name="robot_states_name">${robot_states_name}</param>
+          </xacro:if>
           <param name="rdk_control_mode">${rdk_control_mode}</param>
           <param name="rdk_realtime_mode">${rdk_realtime_mode}</param>
           <param name="withhold_on_timeliness_failure">${withhold_on_timeliness_failure}</param>
@@ -154,7 +152,7 @@
         </xacro:if>
       </xacro:macro>
 
-      <gpio name="${sn_prefix}gpio">
+      <gpio name="${prefix}gpio">
         <xacro:loop_gpio idx="0" />
       </gpio>
 
